@@ -1,4 +1,3 @@
-# gui.py
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
@@ -11,9 +10,7 @@ from datetime import datetime, timezone
 import numpy as np
 from solarsystem import PlanetEngine
 
-
-
-from planet import Planet
+#from solarsystem import PlanetEngine
 
 class SkyCanvas(FigureCanvas):
     def __init__(self, parent=None):
@@ -63,7 +60,7 @@ class MainWindow(QWidget):
 
         controls.addWidget(QLabel("Body:"))
         self.body_cb = QComboBox()
-        bodies = ["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn"]
+        bodies = ["Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune"]
         for b in bodies:
             self.body_cb.addItem(b)
         controls.addWidget(self.body_cb)
@@ -103,7 +100,7 @@ class MainWindow(QWidget):
         sel_body = self.body_cb.currentText()
         try:
             # we'll compute all bodies and highlight selected too (makes UI exploration easier)
-            bodies = ["Mercury","Venus","Mercury","Mars","Jupiter","Saturn","Uranus","Neptune"]
+            bodies = ["Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune"]
             data = []
             for b in bodies:
                 pos = self.engine.body_position(b, observer_latlon=(lat,lon), when=dt)

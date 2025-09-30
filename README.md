@@ -4,7 +4,7 @@ The Sky Map Viewer is a Python-based desktop application built with PyQt5 and Ma
 
 This project is ideal for students, astronomy enthusiasts, and anyone interested in exploring planetary positions in a visual, interactive way.
 
----------------
+
 # 🚀 Features
 
 Interactive Sky Map: Displays the positions of planets on a polar coordinate sky map.

@@ -18,7 +18,8 @@ Planet Information Panel: Shows detailed data for the selected planet, including
 Visual Alerts: Displays warnings if a planet is below the horizon.
 
 Hidden Bodies List: Provides information on planets that are not currently visible.
-----------
+
+
 # 📚 Libraries Used
 
 The following Python libraries are required:
@@ -33,7 +34,8 @@ sys	           - System-level operations for application execution
 timezone	      - Timezone handling for accurate planet positions
 
 Make sure all libraries are installed before running the project.
-----------
+
+
 # 🛠 Usage
 
 Launch the application.
@@ -50,7 +52,7 @@ View the planet on the sky map and read detailed information in the info panel.
 
 Access Help or About from the menu bar for instructions or project information.
 
------
+
 ## 📂 Project Structure
 
 sky-map-viewer/
@@ -62,18 +64,7 @@ sky-map-viewer/
 
 
 
-## 🙌 Credits
 
-# Skyfield
- for astronomical calculations
-
-# PyQt5
- for GUI
-
-# Matplotlib
- for sky plotting
-
- ---------
 
 
 

@@ -25,13 +25,13 @@ Hidden Bodies List: Provides information on planets that are not currently visib
 The following Python libraries are required:
 
 Library	Purpose
-PyQt5	         - GUI framework for windows, widgets, layouts, and dialogs
-Matplotlib	    - Plotting sky maps in polar coordinates
-Numpy	         - Mathematical operations for angles and coordinates
-datetime	      - Handling dates and times in UTC
-pathlib	       - File system paths for images and resources
-sys	           - System-level operations for application execution
-timezone	      - Timezone handling for accurate planet positions
+  - PyQt5	         - GUI framework for windows, widgets, layouts, and dialogs
+  - Matplotlib	    - Plotting sky maps in polar coordinates
+  - Numpy	         - Mathematical operations for angles and coordinates
+  - datetime	      - Handling dates and times in UTC
+  - pathlib	       - File system paths for images and resources
+  - sys	           - System-level operations for application execution
+  - timezone	      - Timezone handling for accurate planet positions
 
 Make sure all libraries are installed before running the project.
 

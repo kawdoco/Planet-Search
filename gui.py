@@ -1,4 +1,7 @@
 import sys
+from PyQt5.QtWidgets import QTextEdit
+
+from PyQt5.QtWidgets import QLabel, QFrame
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QDateTimeEdit, QMessageBox
@@ -9,8 +12,7 @@ from matplotlib.figure import Figure
 from datetime import datetime, timezone
 import numpy as np
 from solarsystem import PlanetEngine
-
-#from solarsystem import PlanetEngine
+#from planet import Planet
 
 class SkyCanvas(FigureCanvas):
     def __init__(self, parent=None):
@@ -76,13 +78,24 @@ class MainWindow(QWidget):
         controls.addWidget(self.search_btn)
 
         layout.addLayout(controls)
+#-------------------------------
+      # --- Main content: Canvas + Info Panel side by side ---
+        main_content = QHBoxLayout()
 
         # Canvas
         self.canvas = SkyCanvas(self)
-        layout.addWidget(self.canvas)
+        main_content.addWidget(self.canvas, stretch=3)
+
+        # Info panel
+        self.info_label = QLabel("Planet details will appear here")
+        self.info_label.setWordWrap(True)
+        self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        self.info_label.setMinimumWidth(250)
+        main_content.addWidget(self.info_label, stretch=1)
+
+        layout.addLayout(main_content)
 
         # engine
-        # inside MainWindow.__init__
         self.engine = PlanetEngine()
 
         self.setLayout(layout)
@@ -90,7 +103,6 @@ class MainWindow(QWidget):
     def on_search(self):
         lat = float(self.lat_cb.currentData())
         lon = float(self.lon_cb.currentData())
-        # convert QDateTime to python datetime (UTC)
         qdt = self.dt_edit.dateTime().toUTC()
         dt = datetime(
             qdt.date().year(), qdt.date().month(), qdt.date().day(),
@@ -99,25 +111,45 @@ class MainWindow(QWidget):
         )
         sel_body = self.body_cb.currentText()
         try:
-            # we'll compute all bodies and highlight selected too (makes UI exploration easier)
-            bodies = ["Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune"]
+            bodies = ["Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
             data = []
+            hidden_reasons = []
+
             for b in bodies:
-                pos = self.engine.body_position(b, observer_latlon=(lat,lon), when=dt)
+                pos = self.engine.body_position(b, observer_latlon=(lat, lon), when=dt)
                 pos['name'] = b
-                data.append(pos)
+                if pos['alt_deg'] > 0:
+                    data.append(pos)
+                else:
+                    hidden_reasons.append(f"{b} is below the horizon at this time.")
+
+            # Update plot
             self.canvas.plot_bodies(data)
-            # show a popup with the chosen body's details
-            chosen = next(item for item in data if item['name']==sel_body)
-            info = (f"{sel_body} @ {dt.isoformat()} UTC\n"
-                    f"Azimuth: {chosen['az_deg']:.2f}°\n"
-                    f"Altitude: {chosen['alt_deg']:.2f}°\n"
-                    f"RA: {chosen['ra_hours']:.4f} h\n"
-                    f"Dec: {chosen['dec_deg']:.4f}°\n"
+
+            # Selected planet info
+            chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
+            info = (f"<h3>{sel_body}</h3>"
+                    f"UTC: {dt.isoformat()}<br>"
+                    f"Azimuth: {chosen['az_deg']:.2f}°<br>"
+                    f"Altitude: {chosen['alt_deg']:.2f}°<br>"
+                    f"RA: {chosen['ra_hours']:.4f} h<br>"
+                    f"Dec: {chosen['dec_deg']:.4f}°<br>"
                     f"Distance (AU): {chosen['distance_au']:.4f}")
+
+            if chosen['alt_deg'] <= 0:
+                info += "<br><span style='color:red'>⚠️ Not visible (below horizon)</span>"
+
             QMessageBox.information(self, f"{sel_body} position", info)
+
+            if hidden_reasons:
+                #info += "<br><br><b>Other hidden bodies:</b><br>" + "<br>".join(hidden_reasons)
+                QMessageBox.information(self, "Not Visible", "\n".join(hidden_reasons))
+            # --- Show in side panel only ---
+            #self.info_label.setText(info)
+
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -12,16 +12,16 @@ from matplotlib.figure import Figure
 from datetime import datetime, timezone
 import numpy as np
 from solarsystem import PlanetEngine
-#from planet import Planet
+
 
 class SkyCanvas(FigureCanvas):
     def __init__(self, parent=None):
         fig = Figure(figsize=(5,5))
         super().__init__(fig)
         self.ax = fig.add_subplot(111, polar=True)
-        self.ax.set_theta_zero_location("N")  # 0 at North
-        self.ax.set_theta_direction(-1)  # clockwise
-        self.ax.set_rlim(90, 0)  # show altitude as radius inverted (90 top, 0 bottom)
+        self.ax.set_theta_zero_location("N")  
+        self.ax.set_theta_direction(-1)  
+        self.ax.set_rlim(90, 0)  
 
     def plot_bodies(self, data_list):
         self.ax.clear()
@@ -32,7 +32,7 @@ class SkyCanvas(FigureCanvas):
             az = np.deg2rad(item['az_deg'])
             alt = item['alt_deg']
             label = item['name']
-            self.ax.scatter(az, 90-alt, s=50)  # convert alt->radius
+            self.ax.scatter(az, 90-alt, s=50)  
             self.ax.text(az, 90-alt, " " + label)
         self.ax.set_title("Sky view (azimuth=N=0°, radius = 90°-altitude)")
         self.draw()
@@ -79,14 +79,12 @@ class MainWindow(QWidget):
 
         layout.addLayout(controls)
 #-------------------------------
-      # --- Main content: Canvas + Info Panel side by side ---
+      
         main_content = QHBoxLayout()
 
-        # Canvas
         self.canvas = SkyCanvas(self)
         main_content.addWidget(self.canvas, stretch=3)
 
-        # Info panel
         self.info_label = QLabel("Planet details will appear here")
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
@@ -95,7 +93,7 @@ class MainWindow(QWidget):
 
         layout.addLayout(main_content)
 
-        # engine
+        
         self.engine = PlanetEngine()
 
         self.setLayout(layout)
@@ -123,10 +121,10 @@ class MainWindow(QWidget):
                 else:
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
 
-            # Update plot
+            
             self.canvas.plot_bodies(data)
 
-            # Selected planet info
+            
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
             info = (f"<h3>{sel_body}</h3>"
                     f"UTC: {dt.isoformat()}<br>"
@@ -139,16 +137,14 @@ class MainWindow(QWidget):
             if chosen['alt_deg'] <= 0:
                 info += "<br><span style='color:red'>⚠️ Not visible (below horizon)</span>"
 
-            QMessageBox.information(self, f"{sel_body} position", info)
-
             if hidden_reasons:
-                #info += "<br><br><b>Other hidden bodies:</b><br>" + "<br>".join(hidden_reasons)
-                QMessageBox.information(self, "Not Visible", "\n".join(hidden_reasons))
-            # --- Show in side panel only ---
-            #self.info_label.setText(info)
+                info += "<br><br><b>Other hidden bodies:</b><br>" + "<br>".join(hidden_reasons)
+
+            
+            self.info_label.setText(info)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            self.info_label.setText(f"<span style='color:red'>Error: {str(e)}</span>")
 
 
 if __name__ == "__main__":

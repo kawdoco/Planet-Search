@@ -19,9 +19,9 @@ class SkyCanvas(FigureCanvas):
         fig = Figure(figsize=(5,5))
         super().__init__(fig)
         self.ax = fig.add_subplot(111, polar=True)
-        self.ax.set_theta_zero_location("N")  
-        self.ax.set_theta_direction(-1)  
-        self.ax.set_rlim(90, 0)  
+        self.ax.set_theta_zero_location("N")  # 0 at North
+        self.ax.set_theta_direction(-1)  # clockwise
+        self.ax.set_rlim(90, 0)  # show altitude as radius inverted (90 top, 0 bottom)
 
     def plot_bodies(self, data_list):
         self.ax.clear()
@@ -32,7 +32,7 @@ class SkyCanvas(FigureCanvas):
             az = np.deg2rad(item['az_deg'])
             alt = item['alt_deg']
             label = item['name']
-            self.ax.scatter(az, 90-alt, s=50)  
+            self.ax.scatter(az, 90-alt, s=50)  # convert alt->radius
             self.ax.text(az, 90-alt, " " + label)
         self.ax.set_title("Sky view (azimuth=N=0°, radius = 90°-altitude)")
         self.draw()
@@ -47,7 +47,7 @@ class MainWindow(QWidget):
         controls = QHBoxLayout()
         controls.addWidget(QLabel("Observer Lat:"))
         self.lat_cb = QComboBox()
-        # quick presets
+        
         self.lat_cb.addItem("0.0", 0.0)
         self.lat_cb.addItem("6.9271 (Colombo)", 6.9271)
         self.lat_cb.addItem("51.5074 (London)", 51.5074)
@@ -78,22 +78,25 @@ class MainWindow(QWidget):
         controls.addWidget(self.search_btn)
 
         layout.addLayout(controls)
-#-------------------------------
-      
+
+      # --- Main content: Canvas + Info Panel side by side ---
         main_content = QHBoxLayout()
 
+        # Canvas
         self.canvas = SkyCanvas(self)
         main_content.addWidget(self.canvas, stretch=3)
 
+        # Info panel
         self.info_label = QLabel("Planet details will appear here")
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.info_label.setMinimumWidth(250)
+        
         main_content.addWidget(self.info_label, stretch=1)
 
         layout.addLayout(main_content)
 
-        
+        # engine
         self.engine = PlanetEngine()
 
         self.setLayout(layout)
@@ -121,26 +124,42 @@ class MainWindow(QWidget):
                 else:
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
 
-            
+            # Update plot
             self.canvas.plot_bodies(data)
 
-            
+            # Selected planet info
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
-            info = (f"<h3>{sel_body}</h3>"
-                    f"UTC: {dt.isoformat()}<br>"
-                    f"Azimuth: {chosen['az_deg']:.2f}°<br>"
-                    f"Altitude: {chosen['alt_deg']:.2f}°<br>"
-                    f"RA: {chosen['ra_hours']:.4f} h<br>"
-                    f"Dec: {chosen['dec_deg']:.4f}°<br>"
-                    f"Distance (AU): {chosen['distance_au']:.4f}")
-
+            info = f"""
+            <div style="font-family: Times New Roman; font-size: 12pt; color: #222;background-color: #e0f7fa; padding:10px; border-radius:6px;">
+                <h1 style="color:#a14a10; margin-bottom:4px;">{sel_body}</h1>
+                <p><b>UTC:    </b> {dt.isoformat()}</p>
+                <table style="border-spacing: 6px;">
+                    <tr><td><b>Azimuth:</b></td><td>{chosen['az_deg']:.2f}°</td></tr>
+                    <tr><td><b>Altitude:</b></td><td>{chosen['alt_deg']:.2f}°</td></tr>
+                    <tr><td><b>Right Ascension:</b></td><td>{chosen['ra_hours']:.4f} h</td></tr>
+                    <tr><td><b>Declination:</b></td><td>{chosen['dec_deg']:.4f}°</td></tr>
+                    <tr><td><b>Distance:</b></td><td>{chosen['distance_au']:.4f} AU</td></tr>
+                </table>
+            """
             if chosen['alt_deg'] <= 0:
-                info += "<br><span style='color:red'>⚠️ Not visible (below horizon)</span>"
+                info += """
+                <p style="color:red; margin-top:6px;">
+                    \n\n⚠️ Not visible on sky map because it is below the horizon.
+                    
+                </p>
+                """
+    
 
             if hidden_reasons:
-                info += "<br><br><b>Other hidden bodies:</b><br>" + "<br>".join(hidden_reasons)
+                info += "<h2 style='margin-top:10px; color:#f5e342;'><br>Other Hidden Bodies</h2><ul>"
+                for reason in hidden_reasons:
+                    info += f"<li>{reason}</li>"
+                info += "</ul>"
 
-            
+            info += "</div>"
+
+
+            # --- Show in side panel only ---
             self.info_label.setText(info)
 
         except Exception as e:

@@ -53,7 +53,7 @@ View the planet on the sky map and read detailed information in the info panel.
 Access Help or About from the menu bar for instructions or project information.
 
 
-## 📂 Project Structure
+# 📂 Project Structure
 
 sky-map-viewer/
 │
@@ -62,14 +62,14 @@ sky-map-viewer/
 ├─ images/              # Planet images (Mercury.png, Venus.png, etc.)
 └─ README.md            # Project documentation
 
-## Team Members 👩‍💻👨‍💻
--Kasun Ranga
--Thiloka Dasanayaka
--Poojana Dinushan
--Sanili Jesmina
--Dilmi Amasha
--Sanjana De Silva
--Navodya Sankalpani
+# Team Members 👩‍💻👨‍💻
+  -Kasun Ranga
+  -Thiloka Dasanayaka
+  -Poojana Dinushan
+  -Sanili Jesmina
+  -Dilmi Amasha
+  -Sanjana De Silva
+  -Navodya Sankalpani
 
 
 

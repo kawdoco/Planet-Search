@@ -63,13 +63,13 @@ sky-map-viewer/
 └─ README.md            # Project documentation
 
 # Team Members 👩‍💻👨‍💻
-  -Kasun Ranga
-  -Thiloka Dasanayaka
-  -Poojana Dinushan
-  -Sanili Jesmina
-  -Dilmi Amasha
-  -Sanjana De Silva
-  -Navodya Sankalpani
+  - Kasun Ranga
+  - Thiloka Dasanayaka
+  - Poojana Dinushan
+  - Sanili Jesmina
+  - Dilmi Amasha
+  - Sanjana De Silva
+  - Navodya Sankalpani
 
 
 

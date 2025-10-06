@@ -91,6 +91,17 @@ class MainWindow(QWidget):
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.info_label.setMinimumWidth(250)
+
+
+        # --- Set dark blue background for the info panel ---
+        self.info_label.setStyleSheet("""
+            background-color: #01161e;
+            color: white;
+            border: 1px solid #124559;
+            border-radius: 6px;
+            padding: 10px;
+        """)
+
         
         main_content.addWidget(self.info_label, stretch=1)
 
@@ -124,10 +135,10 @@ class MainWindow(QWidget):
                 else:
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
 
-            # Update plot
+           
             self.canvas.plot_bodies(data)
 
-            # Selected planet info
+            
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
             info = f"""
             <div style="font-family: Times New Roman; font-size: 12pt; color: #222;background-color: #e0f7fa; padding:10px; border-radius:6px;">

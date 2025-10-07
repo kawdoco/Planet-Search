@@ -1,177 +1,72 @@
-# 📡 Planetary Position Visualizer
+# 📡🌌 Planetary Sky Position Simulator
 
-This project is a planetary position calculator and visualizer that lets users compute and display the position of planets (Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune) for a given date and time. It includes both a command-line interface (CLI) and a graphical user interface (GUI).
+The Sky Map Viewer is a Python-based desktop application built with PyQt5 and Matplotlib. It allows users to visualize the real-time positions of planets in the sky from a selected location and time. The application provides detailed astronomical data, including azimuth, altitude, right ascension, declination, and distance for each planet.
 
----------------
-Built using:
+This project is ideal for students, astronomy enthusiasts, and anyone interested in exploring planetary positions in a visual, interactive way.
 
-##🛰️ Skyfield
- – for precise astronomical calculations
 
-🐍 Python
+# 🚀 Features
 
-🗃️ MySQL – for logging planetary positions
+Interactive Sky Map: Displays the positions of planets on a polar coordinate sky map.
 
-🎨 PyQt5 + Matplotlib – for an interactive sky map GUI
+City Selection: Choose from multiple global locations to update the observer’s latitude and longitude.
 
-----------
+Date & Time Control: Set a custom UTC date and time to view planets’ positions at that moment.
 
+Planet Information Panel: Shows detailed data for the selected planet, including azimuth, altitude, right ascension, declination, and distance.
 
-# 📁 Features
+Visual Alerts: Displays warnings if a planet is below the horizon.
 
+Hidden Bodies List: Provides information on planets that are not currently visible.
 
 
+# 📚 Libraries Used
 
-🌐 Compute azimuth, altitude, right ascension (RA), declination (Dec), and distance (AU)
+The following Python libraries are required:
 
-💾 Save results to a MySQL database
+Library	Purpose
+  - PyQt5	         - GUI framework for windows, widgets, layouts, and dialogs
+  - Matplotlib	    - Plotting sky maps in polar coordinates
+  - Numpy	         - Mathematical operations for angles and coordinates
+  - datetime	      - Handling dates and times in UTC
+  - pathlib	       - File system paths for images and resources
+  - sys	           - System-level operations for application execution
+  - timezone	      - Timezone handling for accurate planet positions
 
-🧭 Select observer location (Lat/Lon)
+Make sure all libraries are installed before running the project.
 
-📈 Visualize planet positions on a polar sky map
 
-🖥️ Two interfaces:
+# 🛠 Usage
 
-CLI (Command Line)
+Launch the application.
 
-GUI (PyQt5-based)
+Select your city from the City dropdown menu.
 
----------
+Select a planet from the Body dropdown menu.
 
-| CLI                         | GUI                         |
-| --------------------------- | --------------------------- |
-| ![CLI](assets/cli_demo.png) | ![GUI](assets/gui_demo.png) |
+Choose the desired UTC Date & Time.
 
+Click the Search / Plot button.
 
-Add your own screenshots to the assets/ folder and update the paths above.
+View the planet on the sky map and read detailed information in the info panel.
 
-------
+Access Help or About from the menu bar for instructions or project information.
 
-🔧 Installation
 
-1. Clone the repository
-   git clone https://github.com/your-username/planet-visualizer.git
-cd planet-visualizer
+# 📂 Project Structure
 
-2. Install dependencies
-   It's recommended to use a virtual environment:
+sky-map-viewer/
+  
+  ├─ gui.py               # Main application GUI code
+  ├─ solarsystem.py       # PlanetEngine for calculating planetary positions
+  ├─ images/              # Planet images (Mercury.png, Venus.png, etc.)
+  └─ README.md            # Project documentation
 
-   python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-3.Setup MySQL database
-
-   CREATE DATABASE IF NOT EXISTS planet_db;
-USE planet_db;
-
-CREATE TABLE IF NOT EXISTS planet_positions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50),
-    az_deg DOUBLE,
-    alt_deg DOUBLE,
-    ra_hours DOUBLE,
-    dec_deg DOUBLE,
-    distance_au DOUBLE,
-    timestamp DATETIME
-);
-
-Update your DB credentials in main_cli.py and db_handler.py.
---------
-
-# 💻 Usage
-CLI
-
-python main_cli.py
-
-----------
-
-
-You will be prompted to enter:
-
-Planet name
-
-Date and time (YYYY-MM-DD HH:MM)
-
-
-Result will be displayed and saved to MySQL.
-
--------
-
-# GUI
-
-python main_gui.py
-
---------
-
-# Use dropdowns to:
-
-Select observer location
-
----------
-
-# Select planet
-
-Choose date/time
-
-Click “Search / Plot” to visualize sky map
-
----------
-
-# GUI
-
-python main_gui.py
----------
-
-# Use dropdowns to:
-
-Select observer location
-
-Select planet
-
-Choose date/time
-
-Click “Search / Plot” to visualize sky map
-
------
-## 📦 Project Structure
-
-solarsystem/
-
-├── planet.py         # Planet classes
-
-├── engine.py         # PlanetEngine logic
-
-├── db_handler.py     # MySQL integration
-
-├── gui.py            # GUI logic
-
-main_cli.py           # CLI entry point
-
-main_gui.py           # GUI entry point
-
-requirements.txt
-
-README.md
-
-## 📜 License
-
-This project is open-source and available under the MIT License
-----
-
-## 🙌 Credits
-
-# Skyfield
- for astronomical calculations
-
-# PyQt5
- for GUI
-
-# Matplotlib
- for sky plotting
-
- ---------
-
-
-
-
+# Team Members 👩‍💻👨‍💻
+  - Kasun Ranga
+  - Thiloka Dasanayaka
+  - Poojana Dinushan
+  - Sanili Jesmina
+  - Dilmi Amasha
+  - Sanjana De Silva
+  - Navodya Sankalpani

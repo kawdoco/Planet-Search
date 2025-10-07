@@ -92,7 +92,6 @@ class MainWindow(QWidget):
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.info_label.setMinimumWidth(250)
 
-
         # --- Set dark blue background for the info panel ---
         self.info_label.setStyleSheet("""
             background-color: #01161e;
@@ -101,7 +100,6 @@ class MainWindow(QWidget):
             border-radius: 6px;
             padding: 10px;
         """)
-
         
         main_content.addWidget(self.info_label, stretch=1)
 
@@ -135,16 +133,16 @@ class MainWindow(QWidget):
                 else:
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
 
-           
+            
             self.canvas.plot_bodies(data)
 
             
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
             info = f"""
-            <div style="font-family: Times New Roman; font-size: 12pt; color: #222;background-color: #e0f7fa; padding:10px; border-radius:6px;">
-                <h1 style="color:#a14a10; margin-bottom:4px;">{sel_body}</h1>
-                <p><b>UTC:    </b> {dt.isoformat()}</p>
-                <table style="border-spacing: 6px;">
+            <div style="font-family: Times New Roman; font-size: 12pt; color: #222;">
+                <h1 style="color:#1AB0A3; margin-bottom:4px;">{sel_body}</h1>
+                <p style="color:#fff;"><b>UTC:</b> {dt.isoformat()}</p>
+                <table  style="border-spacing: 6px; color:#fff;">
                     <tr><td><b>Azimuth:</b></td><td>{chosen['az_deg']:.2f}°</td></tr>
                     <tr><td><b>Altitude:</b></td><td>{chosen['alt_deg']:.2f}°</td></tr>
                     <tr><td><b>Right Ascension:</b></td><td>{chosen['ra_hours']:.4f} h</td></tr>
@@ -162,7 +160,8 @@ class MainWindow(QWidget):
     
 
             if hidden_reasons:
-                info += "<h2 style='margin-top:10px; color:#f5e342;'><br>Other Hidden Bodies</h2><ul>"
+                info += "<h2 style='margin-top:10px; color:#CFE67E;'><br>Other Hidden Bodies</h2><ul>"
+                info += '<ul style="color:white;">'
                 for reason in hidden_reasons:
                     info += f"<li>{reason}</li>"
                 info += "</ul>"

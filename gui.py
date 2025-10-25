@@ -37,55 +37,13 @@ class SkyCanvas(FigureCanvas):
         self.draw()
 
 
-
-class MainWindow(QMainWindow):  # QMainWindow to support menu bar
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Sky Map Viewer - Planet & Star Tracker")
-        #self.setWindowTitle("AstroLocator")
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Sky Map Viewer - Planet & Star Tracker")
-b87e6adca34db29a762cc866cab5abb1f681af1d
         self.setGeometry(100, 100, 1000, 600)
 
         self.engine = PlanetEngine()
-
-
-        self.init_menu()   # Add menu bar
-        self.init_ui()     # Setup layout
-
-    def init_menu(self):
-        menubar = self.menuBar()
-
-        # Apply dark blue style
-        menubar.setStyleSheet("""
-            QMenuBar {
-                background-color: #01161e;
-                color: white;
-                font-weight: bold;
-            }
-            QMenuBar::item {
-                background-color: transparent;
-                padding: 4px 10px;
-            }
-            QMenuBar::item:selected {
-                background-color: #124559;
-            }
-            QMenu {
-                background-color: #01161e;
-                color: white;
-                border: 1px solid #124559;
-            }
-            QMenu::item:selected {
-                background-color: #124559;
-            }
-        """)
-
-        # File menu
-        file_menu = menubar.addMenu("Exit")
 
         self.init_menu()
         self.init_ui()
@@ -101,27 +59,15 @@ b87e6adca34db29a762cc866cab5abb1f681af1d
         """)
 
         file_menu = menubar.addMenu("File")
- b87e6adca34db29a762cc866cab5abb1f681af1d
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
-
-
-        # Help menu
-        help_menu = menubar.addMenu("Help")
-        help_action = QAction("How to use", self)
-        help_action.triggered.connect(self.show_help_dialog)
-        help_menu.addAction(help_action)
-
-        # about menu
-        #about_menu = menubar.addMenu("About")
 
         help_menu = menubar.addMenu("Help")
         help_action = QAction("How to Use", self)
         help_action.triggered.connect(self.show_help_dialog)
         help_menu.addAction(help_action)
 
-b87e6adca34db29a762cc866cab5abb1f681af1d
         about_action = QAction("About", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
@@ -131,21 +77,11 @@ b87e6adca34db29a762cc866cab5abb1f681af1d
             self,
             "How to use",
             """🌌 Select your observing location, then choose the planet you want to view.
-
-            The system will display a sky map showing the planet’s current position along with detailed information.
-            If a planet does not appear on the map, check the "Other Hidden Bodies" list to see if it is below the horizon.
-            You can change your location at any time to update the sky view."""
-        )
-
-        
-
-
 The system will display a sky map showing the planet’s current position along with detailed information.
 If a planet does not appear on the map, check the "Other Hidden Bodies" list to see if it is below the horizon.
 You can change your location at any time to update the sky view."""
         )
 
- b87e6adca34db29a762cc866cab5abb1f681af1d
     def show_about_dialog(self):
         QMessageBox.information(
             self,
@@ -155,43 +91,68 @@ You can change your location at any time to update the sky view."""
 
     def init_ui(self):
         central_widget = QWidget()
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
 
-        # Top controls
+        # --- Controls layout ---
         controls = QHBoxLayout()
-        controls.addWidget(QLabel("Observer latitude:"))
-        self.lat_cb = QComboBox()
-        self.lat_cb.addItem("0.0", 0.0)
-        self.lat_cb.addItem("6.9271 (Colombo)", 6.9271)
-        self.lat_cb.addItem("51.5074 (London)", 51.5074)
-        controls.addWidget(self.lat_cb)
 
-        controls.addWidget(QLabel("longitude:"))
-        self.lon_cb = QComboBox()
-        self.lon_cb.addItem("0.0", 0.0)
-        self.lon_cb.addItem("79.8612 (Colombo)", 79.8612)
-        self.lon_cb.addItem("-0.1278 (London)", -0.1278)
-        controls.addWidget(self.lon_cb)
+        # City selection
+        controls.addWidget(QLabel("Select City:"))
+        self.city_cb = QComboBox()
+        self.cities = {
+            
+            "Colombo": (6.9271, 79.8612),
+            "Kandy": (7.2964 , 80.6350),
+            "Galle":(6.0360, 79.9179),
+            "Jaffna":(9.6606, 80.0140),
+            "Trincomalee":(8.5850, 81.2301),
+            "Delhi": (28.6333, 77.2167),
+            "Mumbai": (19.0833, 72.8667),
+            "Kolkata": (22.5667, 88.3667),
+            "Chennai": (13.0833, 80.2833),
+            "London": (51.5000, -0.1000),
+            "Birmingham": (52.4000, -1.9000),
+            "Leeds": (53.8000, -1.5000),
+            "Liverpool": (53.4000, -3.0000),
+            "Bristol": (51.5000, -2.6000),
+            "Manchester": (53.5000, -2.3000),
 
+
+
+        }
+        for city in self.cities:
+            self.city_cb.addItem(city)
+
+        # Default selection
+        default_city = "Colombo"
+        self.city_cb.setCurrentText(default_city)
+        self.lat, self.lon = self.cities[default_city]
+
+        self.city_cb.currentTextChanged.connect(self.update_coordinates)
+        controls.addWidget(self.city_cb)
+
+        # Body selection
         controls.addWidget(QLabel("Body:"))
         self.body_cb = QComboBox()
         for b in ["Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]:
             self.body_cb.addItem(b)
         controls.addWidget(self.body_cb)
 
+        # DateTime selection
         controls.addWidget(QLabel("DateTime (UTC):"))
         self.dt_edit = QDateTimeEdit(QDateTime.currentDateTimeUtc())
         self.dt_edit.setDisplayFormat("yyyy-MM-dd HH:mm:ss")
         self.dt_edit.setCalendarPopup(True)
         controls.addWidget(self.dt_edit)
 
+        # Search button
         self.search_btn = QPushButton("Search / Plot")
         self.search_btn.clicked.connect(self.on_search)
         controls.addWidget(self.search_btn)
 
-        layout.addLayout(controls)
+        main_layout.addLayout(controls)
 
-        # Main content area
+        # --- Main content area ---
         main_content = QHBoxLayout()
 
         # Sky canvas
@@ -202,11 +163,7 @@ You can change your location at any time to update the sky view."""
         self.info_label = QLabel("Planet details will appear here")
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-
-        self.info_label.setMinimumWidth(250)
-
         self.info_label.setMinimumWidth(300)
- b87e6adca34db29a762cc866cab5abb1f681af1d
         self.info_label.setStyleSheet("""
             background-color: #01161e;
             color: white;
@@ -214,23 +171,28 @@ You can change your location at any time to update the sky view."""
             border-radius: 6px;
             padding: 10px;
         """)
-
-        main_content.addWidget(self.info_label, stretch=1)
-
-        layout.addLayout(main_content)
-
-
         self.info_label.setAlignment(Qt.AlignTop)
         main_content.addWidget(self.info_label, stretch=1)
 
-        layout.addLayout(main_content)
->>>>>>> b87e6adca34db29a762cc866cab5abb1f681af1d
-        central_widget.setLayout(layout)
+        main_layout.addLayout(main_content)
+
+        central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-         def on_search(self):
-        lat = float(self.lat_cb.currentData())
-        lon = float(self.lon_cb.currentData())
+        # Initialize coordinates
+        self.lat = 0.0
+        self.lon = 0.0
+
+    def update_coordinates(self, city_name):
+        """Update latitude and longitude based on city selection."""
+        self.lat, self.lon = self.cities.get(city_name, (0.0, 0.0))
+        print(f"Selected city: {city_name}, Latitude: {self.lat}, Longitude: {self.lon}")
+
+
+
+    def on_search(self):
+        lat = self.lat
+        lon = self.lon
         qdt = self.dt_edit.dateTime().toUTC()
         dt = datetime(
             qdt.date().year(), qdt.date().month(), qdt.date().day(),
@@ -253,10 +215,6 @@ You can change your location at any time to update the sky view."""
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
 
             self.canvas.plot_bodies(data)
-
-
-
- b87e6adca34db29a762cc866cab5abb1f681af1d
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
 
             # Planet image
@@ -270,7 +228,7 @@ You can change your location at any time to update the sky view."""
             else:
                 image_html = "<p style='color:#CFE67E; text-align:center; margin-bottom:15px;'>Image not available</p>"
 
-            # Planet details 
+            # Planet details HTML
             details_html = f"""
             <h1 style="color:#1AB0A3; margin-bottom:10px; text-align:center;">{sel_body}<br></h1>
             <p style="margin-bottom:10px;"><b>UTC:</b> {dt.isoformat()}</p>
@@ -283,39 +241,25 @@ You can change your location at any time to update the sky view."""
             </table>
             """
 
-
-            if chosen['alt_deg'] <= 0:
-                info += """
-                <p style="color:red; margin-top:6px;">
-                    <br>⚠️ Not visible on sky map because it is below the horizon.<br>
-
             # Warning if planet is below horizon
             warning_html = ""
             if chosen['alt_deg'] <= 0:
                 warning_html = """
                 <p style="color:red; margin-top:10px; margin-bottom:10px;">
                     ⚠️ Not visible on sky map because it is below the horizon.
- b87e6adca34db29a762cc866cab5abb1f681af1d
                 </p>
                 """
 
             # Hidden bodies
             hidden_html = ""
             if hidden_reasons:
-
-                info += "<h2 style='margin-top:10px; color:#CFE67E;'>Other Hidden Bodies</h2>"
-                info += "<ul style='color:white;'>"
-
                 hidden_html += "<h2 style='margin-top:15px; color:#CFE67E;'><br>Other Hidden Bodies</h2>"
                 hidden_html += "<ul style='color:white; margin-bottom:10px;'>"
- b87e6adca34db29a762cc866cab5abb1f681af1d
                 for reason in hidden_reasons:
                     hidden_html += f"<li style='margin-bottom:5px;'>{reason}</li>"
                 hidden_html += "</ul>"
 
-            info += "</div>"
-
-            
+            # Combine all HTML
             info = f"""
             <div style="font-family: Times New Roman; font-size: 12pt; color: #fff;">
                 {image_html}
@@ -325,7 +269,6 @@ You can change your location at any time to update the sky view."""
             </div>
             """
 
- b87e6adca34db29a762cc866cab5abb1f681af1d
             self.info_label.setText(info)
 
         except Exception as e:

@@ -9,6 +9,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from datetime import datetime, timezone
 import numpy as np
+from pathlib import Path
 from solarsystem import PlanetEngine
 
 
@@ -36,14 +37,22 @@ class SkyCanvas(FigureCanvas):
         self.draw()
 
 
+
 class MainWindow(QMainWindow):  # QMainWindow to support menu bar
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Sky Map Viewer - Planet & Star Tracker")
         #self.setWindowTitle("AstroLocator")
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Sky Map Viewer - Planet & Star Tracker")
+b87e6adca34db29a762cc866cab5abb1f681af1d
         self.setGeometry(100, 100, 1000, 600)
 
         self.engine = PlanetEngine()
+
 
         self.init_menu()   # Add menu bar
         self.init_ui()     # Setup layout
@@ -77,9 +86,26 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
 
         # File menu
         file_menu = menubar.addMenu("Exit")
+
+        self.init_menu()
+        self.init_ui()
+
+    def init_menu(self):
+        menubar = self.menuBar()
+        menubar.setStyleSheet("""
+            QMenuBar { background-color: #01161e; color: white; font-weight: bold; }
+            QMenuBar::item { background-color: transparent; padding: 4px 10px; }
+            QMenuBar::item:selected { background-color: #124559; }
+            QMenu { background-color: #01161e; color: white; border: 1px solid #124559; }
+            QMenu::item:selected { background-color: #124559; }
+        """)
+
+        file_menu = menubar.addMenu("File")
+ b87e6adca34db29a762cc866cab5abb1f681af1d
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
+
 
         # Help menu
         help_menu = menubar.addMenu("Help")
@@ -89,6 +115,13 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
 
         # about menu
         #about_menu = menubar.addMenu("About")
+
+        help_menu = menubar.addMenu("Help")
+        help_action = QAction("How to Use", self)
+        help_action.triggered.connect(self.show_help_dialog)
+        help_menu.addAction(help_action)
+
+b87e6adca34db29a762cc866cab5abb1f681af1d
         about_action = QAction("About", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
@@ -98,6 +131,7 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
             self,
             "How to use",
             """🌌 Select your observing location, then choose the planet you want to view.
+
             The system will display a sky map showing the planet’s current position along with detailed information.
             If a planet does not appear on the map, check the "Other Hidden Bodies" list to see if it is below the horizon.
             You can change your location at any time to update the sky view."""
@@ -105,6 +139,13 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
 
         
 
+
+The system will display a sky map showing the planet’s current position along with detailed information.
+If a planet does not appear on the map, check the "Other Hidden Bodies" list to see if it is below the horizon.
+You can change your location at any time to update the sky view."""
+        )
+
+ b87e6adca34db29a762cc866cab5abb1f681af1d
     def show_about_dialog(self):
         QMessageBox.information(
             self,
@@ -161,7 +202,11 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
         self.info_label = QLabel("Planet details will appear here")
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+
         self.info_label.setMinimumWidth(250)
+
+        self.info_label.setMinimumWidth(300)
+ b87e6adca34db29a762cc866cab5abb1f681af1d
         self.info_label.setStyleSheet("""
             background-color: #01161e;
             color: white;
@@ -169,14 +214,21 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
             border-radius: 6px;
             padding: 10px;
         """)
+
         main_content.addWidget(self.info_label, stretch=1)
 
         layout.addLayout(main_content)
 
+
+        self.info_label.setAlignment(Qt.AlignTop)
+        main_content.addWidget(self.info_label, stretch=1)
+
+        layout.addLayout(main_content)
+>>>>>>> b87e6adca34db29a762cc866cab5abb1f681af1d
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-    def on_search(self):
+         def on_search(self):
         lat = float(self.lat_cb.currentData())
         lon = float(self.lon_cb.currentData())
         qdt = self.dt_edit.dateTime().toUTC()
@@ -202,35 +254,78 @@ class MainWindow(QMainWindow):  # QMainWindow to support menu bar
 
             self.canvas.plot_bodies(data)
 
+
+
+ b87e6adca34db29a762cc866cab5abb1f681af1d
             chosen = self.engine.body_position(sel_body, observer_latlon=(lat, lon), when=dt)
-            info = f"""
-            <div style="font-family: Times New Roman; font-size: 12pt; color: #222;">
-                <h1 style="color:#1AB0A3; margin-bottom:4px;">{sel_body}</h1>
-                <p style="color:#fff;"><b>UTC:</b> {dt.isoformat()}</p>
-                <table  style="border-spacing: 6px; color:#fff;">
-                    <tr><td><b>Azimuth:</b></td><td>{chosen['az_deg']:.2f}°</td></tr>
-                    <tr><td><b>Altitude:</b></td><td>{chosen['alt_deg']:.2f}°</td></tr>
-                    <tr><td><b>Right Ascension:</b></td><td>{chosen['ra_hours']:.4f} h</td></tr>
-                    <tr><td><b>Declination:</b></td><td>{chosen['dec_deg']:.4f}°</td></tr>
-                    <tr><td><b>Distance:</b></td><td>{chosen['distance_au']:.4f} AU</td></tr>
-                </table>
+
+            # Planet image
+            image_path = f"images/{sel_body}.png"
+            if Path(image_path).exists():
+                image_html = f"""
+                <div style="text-align:center; margin-bottom:15px;">
+                    <img src="{image_path}" width="150" height="150">
+                </div>
+                """
+            else:
+                image_html = "<p style='color:#CFE67E; text-align:center; margin-bottom:15px;'>Image not available</p>"
+
+            # Planet details 
+            details_html = f"""
+            <h1 style="color:#1AB0A3; margin-bottom:10px; text-align:center;">{sel_body}<br></h1>
+            <p style="margin-bottom:10px;"><b>UTC:</b> {dt.isoformat()}</p>
+            <table style="border-spacing: 6px; color:#fff; margin-bottom:10px;">
+                <tr><td><b>Azimuth:</b></td><td>{chosen['az_deg']:.2f}°</td></tr>
+                <tr><td><b>Altitude:</b></td><td>{chosen['alt_deg']:.2f}°</td></tr>
+                <tr><td><b>Right Ascension:</b></td><td>{chosen['ra_hours']:.4f} h</td></tr>
+                <tr><td><b>Declination:</b></td><td>{chosen['dec_deg']:.4f}°</td></tr>
+                <tr><td><b>Distance:</b></td><td>{chosen['distance_au']:.4f} AU</td></tr>
+            </table>
             """
+
 
             if chosen['alt_deg'] <= 0:
                 info += """
                 <p style="color:red; margin-top:6px;">
                     <br>⚠️ Not visible on sky map because it is below the horizon.<br>
+
+            # Warning if planet is below horizon
+            warning_html = ""
+            if chosen['alt_deg'] <= 0:
+                warning_html = """
+                <p style="color:red; margin-top:10px; margin-bottom:10px;">
+                    ⚠️ Not visible on sky map because it is below the horizon.
+ b87e6adca34db29a762cc866cab5abb1f681af1d
                 </p>
                 """
 
+            # Hidden bodies
+            hidden_html = ""
             if hidden_reasons:
+
                 info += "<h2 style='margin-top:10px; color:#CFE67E;'>Other Hidden Bodies</h2>"
                 info += "<ul style='color:white;'>"
+
+                hidden_html += "<h2 style='margin-top:15px; color:#CFE67E;'><br>Other Hidden Bodies</h2>"
+                hidden_html += "<ul style='color:white; margin-bottom:10px;'>"
+ b87e6adca34db29a762cc866cab5abb1f681af1d
                 for reason in hidden_reasons:
-                    info += f"<li>{reason}</li>"
-                info += "</ul>"
+                    hidden_html += f"<li style='margin-bottom:5px;'>{reason}</li>"
+                hidden_html += "</ul>"
 
             info += "</div>"
+
+            
+            info = f"""
+            <div style="font-family: Times New Roman; font-size: 12pt; color: #fff;">
+                {image_html}
+                {details_html}
+                {warning_html}
+                {hidden_html}
+            </div>
+            """
+
+ b87e6adca34db29a762cc866cab5abb1f681af1d
             self.info_label.setText(info)
 
         except Exception as e:

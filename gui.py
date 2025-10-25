@@ -259,7 +259,7 @@ You can change your location at any time to update the sky view."""
                     hidden_html += f"<li style='margin-bottom:5px;'>{reason}</li>"
                 hidden_html += "</ul>"
 
-            # Combine all HTML
+            
             info = f"""
             <div style="font-family: Times New Roman; font-size: 12pt; color: #fff;">
                 {image_html}
@@ -280,3 +280,4 @@ if __name__ == "__main__":
     win = MainWindow()
     win.show()
     sys.exit(app.exec_())
+

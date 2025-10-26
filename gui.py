@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
             # --- Dark Theme Colors ---
             bg_color = "#01161e"
             text_color = "white"
-            highlight_color = "#1AB0A3"  
+            highlight_color = "#1AB0A3" 
             menu_style = """
                 QMenuBar { background-color: #01161e; color: white; font-weight: bold; }
                 QMenuBar::item { background-color: transparent; padding: 4px 10px; }
@@ -220,16 +220,17 @@ class MainWindow(QMainWindow):
         # Background image using QLabel
         self.bg_label = QLabel(home_widget)
         
-        pixmap = QPixmap("images/home.jpg") 
+        pixmap = QPixmap("images/home1.png") 
         self.bg_label.setPixmap(pixmap)
         self.bg_label.setScaledContents(True)
         self.bg_label.setGeometry(0, 0, self.width(), self.height())
         self.bg_label.lower()
 
         title = QLabel("Welcome to Planet Explorer!")
-        # Use theme colors for home page text
-        title_color = "white" if self.current_theme == "dark" else "black"
-        title.setStyleSheet(f"font-size: 32px; font-weight: bold; border: none; color: {title_color};")
+        # Use a high-contrast color (white) for the title over the background image
+        title_color = "white"
+        
+        title.setStyleSheet(f"font-size: 48px; font-weight: bold; border: none; color: {title_color};")
         title.setAlignment(Qt.AlignCenter)
 
         subtitle = QLabel("Track planets, explore the sky, and see their details.")
@@ -277,7 +278,6 @@ class MainWindow(QMainWindow):
             "Kandy": (7.2964, 80.6350),
             "Galle": (6.0360, 79.9179),
             "Jaffna": (9.6606, 80.0140),
-            "Jaffna":(9.6606, 80.0140),
             "Trincomalee":(8.5850, 81.2301),
             "Delhi": (28.6333, 77.2167),
             "Mumbai": (19.0833, 72.8667),
@@ -407,7 +407,7 @@ class MainWindow(QMainWindow):
                 hidden_html += f"<h2 style='color:{highlight_color};'>Other Hidden Bodies</h2><ul style='color:{text_color};'>"
                 for reason in hidden_reasons:
                     hidden_html += f"<li>{reason}</li>"
-                hidden_html += "</ul>"
+                hidden_html += f"</ul>"
             
             # Set the main div color using the theme text color
             info = f"<div style='color:{text_color};'>{image_html}{details_html}{warning_html}{hidden_html}</div>"

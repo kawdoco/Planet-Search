@@ -1,16 +1,18 @@
-import sys                              
+import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QDateTimeEdit, QMessageBox,
     QFrame, QAction
 )
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import QDateTime, Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from datetime import datetime, timezone
 import numpy as np
 from pathlib import Path
-from solarsystem import PlanetEngine
+
+from solarsystem import PlanetEngine 
 
 # ---------------- SKY MAP CANVAS ----------------
 class SkyCanvas(FigureCanvas):
@@ -41,19 +43,22 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Planet Explorer")
-        self.setGeometry(100, 100, 1000, 600)
-
+        self.setGeometry(100, 100, 1200, 700)
         self.engine = PlanetEngine()
-        self.dark_mode = True  # default
+        self.current_theme = "dark"  # default theme
+        
+        # Initialize theme colors for use in on_search before apply_theme is called
+        self._text_color = "white"
+        self._highlight_color = "#1AB0A3"
+        self._warning_color = "red"
 
         self.init_menu()
-        self.show_home_page()
-        self.apply_theme(initial=True)
+        self.show_home_page()  # start with home page
 
-    # -------- MENU BAR WITH RELIABLE MODE TOGGLE --------
+    # -------- MENU BAR --------
     def init_menu(self):
         menubar = self.menuBar()
-        menubar.setStyleSheet("QMenuBar { font-weight: bold; }")
+        
 
         # File menu
         file_menu = menubar.addMenu("File")
@@ -72,117 +77,199 @@ class MainWindow(QMainWindow):
         help_action = QAction("How to Use", self)
         help_action.triggered.connect(self.show_help_dialog)
         help_menu.addAction(help_action)
+
         about_action = QAction("About", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
 
-        # -------- Mode menu with both options --------
-        mode_menu = menubar.addMenu("Mode")
-        self.dark_mode_action = QAction("Dark Mode", self, checkable=True)
-        self.light_mode_action = QAction("Light Mode", self, checkable=True)
+        # Theme menu
+        self.theme_menu = menubar.addMenu("Mode")
+        self.dark_action = QAction("Dark Mode ✓", self)
+        self.dark_action.triggered.connect(self.set_dark_mode)
+        self.light_action = QAction("Light Mode", self)
+        self.light_action.triggered.connect(self.set_light_mode)
+        self.theme_menu.addAction(self.dark_action)
+        self.theme_menu.addAction(self.light_action)
 
-        # Set initial state
-        self.dark_mode_action.setChecked(True)
-        self.light_mode_action.setChecked(False)
-
-        # Connect actions
-        self.dark_mode_action.triggered.connect(lambda: self.set_mode(True))
-        self.light_mode_action.triggered.connect(lambda: self.set_mode(False))
-
-        mode_menu.addAction(self.dark_mode_action)
-        mode_menu.addAction(self.light_mode_action)
-
-    # -------- Mode switching function --------
-    def set_mode(self, dark: bool):
-        self.dark_mode = dark
-        self.apply_theme()
-        self.dark_mode_action.setChecked(dark)
-        self.light_mode_action.setChecked(not dark)
-
-    # -------- THEME APPLY --------
-    def apply_theme(self, initial=False):
-        if self.dark_mode:
+    # -------- THEME FUNCTIONS --------
+    def apply_theme(self):
+        if self.current_theme == "dark":
+            # --- Dark Theme Colors ---
             bg_color = "#01161e"
             text_color = "white"
-            btn_bg = "#2979FF"
-            btn_hover = "#1E88E5"
-        else:
-            bg_color = "#f5f5f5"
-            text_color = "#222222"
-            btn_bg = "#1E88E5"
-            btn_hover = "#2979FF"
+            highlight_color = "#1AB0A3"  
+            menu_style = """
+                QMenuBar { background-color: #01161e; color: white; font-weight: bold; }
+                QMenuBar::item { background-color: transparent; padding: 4px 10px; }
+                QMenuBar::item:selected { background-color: #124559; }
+                QMenu { background-color: #01161e; color: white; border: none; }
+                QMenu::item:selected { background-color: #124559; }
+            """
 
-        self.setStyleSheet(f"""
-            QWidget {{ background-color: {bg_color}; color: {text_color}; }}
-            QPushButton {{
-                background-color: {btn_bg};
-                color: white;
-                border-radius: 8px;
-                padding: 6px 15px;
-            }}
-            QPushButton:hover {{ background-color: {btn_hover}; }}
-            QComboBox {{ background-color: white; color: black; padding: 2px 5px; border-radius:4px; }}
-            QLabel {{ color: {text_color}; }}
-            QDateTimeEdit {{ background-color: white; color: black; padding: 2px 5px; border-radius:4px; }}
-            QFrame {{ background-color: {bg_color}; color: {text_color}; border: 1px solid #124559; border-radius:6px; }}
-        """)
+            palette = f"""
+                QMainWindow {{ background-color: {bg_color}; color: {text_color}; }}
+                QLabel {{ color: {text_color}; border: none; }}
+                QPushButton {{
+                    background-color: #124559;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 10px;
+                }}
+                QPushButton:hover {{ background-color: #1a6b7b; }}
+                QComboBox {{
+                    background-color: #124559;
+                    color: white;
+                    border: none;
+                    padding: 5px;
+                    border-radius: 6px;
+                }}
+                QDateTimeEdit {{
+                    background-color: #124559;
+                    color: white;
+                    border: none;
+                    padding: 5px;
+                    border-radius: 6px;
+                }}
+                QFrame {{
+                    background-color: transparent;
+                    color: {text_color};
+                    border: none;
+                }}
+            """
+            self.dark_action.setText("Dark Mode ✓")
+            self.light_action.setText("Light Mode")
+        else: # Light Mode
+            # --- Light Theme Colors ---
+            bg_color = "#f5f5f5"
+            text_color = "black"
+            highlight_color = "#124559"  # Darker color for planet name
+            menu_style = """
+                QMenuBar { background-color: #ffffff; color: black; font-weight: bold; }
+                QMenuBar::item { background-color: transparent; padding: 4px 10px; }
+                QMenuBar::item:selected { background-color: #aec3b0; }
+                QMenu { background-color: #ffffff; color: black; border: 1px solid #ccc; }
+                QMenu::item:selected { background-color: #aec3b0; }
+            """
+
+            palette = f"""
+                QMainWindow {{ background-color: {bg_color}; color: {text_color}; }}
+                QLabel {{ color: {text_color}; border: none; }}
+                QPushButton {{
+                    background-color: #598392;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 10px;
+                }}
+                QPushButton:hover {{ background-color: #476f77; }}
+                QComboBox {{
+                    background-color: #aec3b0;
+                    color: black;
+                    border: none;
+                    padding: 5px;
+                    border-radius: 6px;
+                }}
+                QDateTimeEdit {{
+                    background-color: #aec3b0;
+                    color: black;
+                    border: none;
+                    padding: 5px;
+                    border-radius: 6px;
+                }}
+                QFrame {{
+                    background-color: transparent;
+                    color: {text_color};
+                    border: none;
+                }}
+            """
+            self.dark_action.setText("Dark Mode")
+            self.light_action.setText("Light Mode ✓")
+
+        self.setStyleSheet(palette)
+        self.menuBar().setStyleSheet(menu_style) # Apply menu bar style
+        
+        # Store colors for on_search to use
+        self._text_color = text_color
+        self._highlight_color = highlight_color
+        
+        # Explicitly update info label color if it exists on the current page
+        if hasattr(self, 'info_label'):
+             # This sets the base color for non-HTML text
+             self.info_label.setStyleSheet(f"""
+                background-color: transparent;
+                color: {text_color};
+                border: none;
+                padding: 10px;
+            """)
+
+    def set_dark_mode(self):
+        self.current_theme = "dark"
+        self.apply_theme()
+
+    def set_light_mode(self):
+        self.current_theme = "light"
+        self.apply_theme()
 
     # -------- HOME PAGE --------
     def show_home_page(self):
         home_widget = QWidget()
-        home_widget.setObjectName("home_widget")  # for stylesheet targeting
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(home_widget)
         layout.setAlignment(Qt.AlignCenter)
 
+        # Background image using QLabel
+        self.bg_label = QLabel(home_widget)
+        
+        pixmap = QPixmap("images/home.jpg") 
+        self.bg_label.setPixmap(pixmap)
+        self.bg_label.setScaledContents(True)
+        self.bg_label.setGeometry(0, 0, self.width(), self.height())
+        self.bg_label.lower()
+
         title = QLabel("Welcome to Planet Explorer!")
-        title.setStyleSheet("font-size: 28px; font-weight: bold;")
+        # Use theme colors for home page text
+        title_color = "white" if self.current_theme == "dark" else "black"
+        title.setStyleSheet(f"font-size: 32px; font-weight: bold; border: none; color: {title_color};")
         title.setAlignment(Qt.AlignCenter)
 
         subtitle = QLabel("Track planets, explore the sky, and see their details.")
-        subtitle.setStyleSheet("font-size: 16px; margin-bottom: 30px;")
+        subtitle.setStyleSheet(f"font-size: 18px; margin-bottom: 30px; border: none; color: {title_color};")
         subtitle.setAlignment(Qt.AlignCenter)
 
-        search_btn = QPushButton("🔭  Search Planet")
+        search_btn = QPushButton("🔭  Search Planet")
         search_btn.setStyleSheet("""
             QPushButton {
-                font-size: 18px;
+                font-size: 20px;
                 font-weight: bold;
                 padding: 12px 30px;
-                border-radius: 10px;
+                border: none;
+                border-radius: 12px;
             }
-        """)
+        """) # Button hover style is in apply_theme
         search_btn.clicked.connect(self.show_planet_page)
 
         layout.addWidget(title)
         layout.addWidget(subtitle)
         layout.addWidget(search_btn)
 
-        home_widget.setLayout(layout)
-
-        # ---- Apply background image ----
-        image_path = "images/home.jpg"  
-        home_widget.setStyleSheet(f"""
-            QWidget#home_widget {{
-                background-image: url({image_path});
-                background-repeat: no-repeat;
-                background-position: center;
-                background-attachment: fixed;
-                background-size: cover;
-            }}
-        """)
-
-
+        # Resize handler
+        home_widget.resizeEvent = self.home_resize_event
 
         self.setCentralWidget(home_widget)
-        #self.apply_theme()
+        self.apply_theme()  # apply current theme
+
+    def home_resize_event(self, event):
+        if hasattr(self, 'bg_label'):
+            self.bg_label.setGeometry(0, 0, event.size().width(), event.size().height())
 
     # -------- PLANET PAGE --------
     def show_planet_page(self):
         central_widget = QWidget()
         main_layout = QVBoxLayout()
 
-        # --- Controls ---
+        # --- Controls layout ---
         controls = QHBoxLayout()
+
         controls.addWidget(QLabel("Select City:"))
         self.city_cb = QComboBox()
         self.cities = {
@@ -190,15 +277,23 @@ class MainWindow(QMainWindow):
             "Kandy": (7.2964, 80.6350),
             "Galle": (6.0360, 79.9179),
             "Jaffna": (9.6606, 80.0140),
-            "Trincomalee": (8.5850, 81.2301),
+            "Jaffna":(9.6606, 80.0140),
+            "Trincomalee":(8.5850, 81.2301),
             "Delhi": (28.6333, 77.2167),
             "Mumbai": (19.0833, 72.8667),
             "Kolkata": (22.5667, 88.3667),
             "Chennai": (13.0833, 80.2833),
             "London": (51.5000, -0.1000),
+            "Birmingham": (52.4000, -1.9000),
+            "Leeds": (53.8000, -1.5000),
+            "Liverpool": (53.4000, -3.0000),
+            "Bristol": (51.5000, -2.6000),
+            "Manchester": (53.5000, -2.3000),
         }
+
         for city in self.cities:
             self.city_cb.addItem(city)
+
         default_city = "Colombo"
         self.city_cb.setCurrentText(default_city)
         self.lat, self.lon = self.cities[default_city]
@@ -230,15 +325,22 @@ class MainWindow(QMainWindow):
 
         self.info_label = QLabel("Planet details will appear here")
         self.info_label.setWordWrap(True)
-        self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        self.info_label.setFrameStyle(QFrame.NoFrame)
         self.info_label.setMinimumWidth(300)
+        
+        self.info_label.setStyleSheet("""
+            background-color: transparent;
+            border: none;
+            padding: 10px;
+        """)
         self.info_label.setAlignment(Qt.AlignTop)
         main_content.addWidget(self.info_label, stretch=1)
 
         main_layout.addLayout(main_content)
+
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
-        self.apply_theme()
+        self.apply_theme()  # apply current theme
 
     # -------- OTHER FUNCTIONS --------
     def update_coordinates(self, city_name):
@@ -246,6 +348,10 @@ class MainWindow(QMainWindow):
 
     def on_search(self):
         try:
+            # Get theme-specific colors
+            text_color = self._text_color
+            highlight_color = self._highlight_color
+            
             lat = self.lat
             lon = self.lon
             qdt = self.dt_edit.dateTime().toUTC()
@@ -276,12 +382,13 @@ class MainWindow(QMainWindow):
                 </div>
                 """
             else:
-                image_html = "<p style='color:#CFE67E; text-align:center; margin-bottom:15px;'>Image not available</p>"
+                # Use highlight color for image not found text
+                image_html = f"<p style='color:{highlight_color}; text-align:center; margin-bottom:15px;'>Image not available</p>"
 
             details_html = f"""
-            <h1 style="color:#1AB0A3; margin-bottom:10px; text-align:center;">{sel_body}</h1>
+            <h1 style="color:{highlight_color}; margin-bottom:10px; text-align:center;">{sel_body}</h1>
             <p><b>UTC:</b> {dt.isoformat()}</p>
-            <table style="border-spacing: 6px; color:#fff;">
+            <table style="border-spacing: 6px; color:{text_color};">
                 <tr><td><b>Azimuth:</b></td><td>{chosen['az_deg']:.2f}°</td></tr>
                 <tr><td><b>Altitude:</b></td><td>{chosen['alt_deg']:.2f}°</td></tr>
                 <tr><td><b>Right Ascension:</b></td><td>{chosen['ra_hours']:.4f} h</td></tr>
@@ -296,12 +403,14 @@ class MainWindow(QMainWindow):
 
             hidden_html = ""
             if hidden_reasons:
-                hidden_html += "<h2 style='color:#CFE67E;'>Other Hidden Bodies</h2><ul>"
+                # Use highlight color for heading and text_color for list items
+                hidden_html += f"<h2 style='color:{highlight_color};'>Other Hidden Bodies</h2><ul style='color:{text_color};'>"
                 for reason in hidden_reasons:
                     hidden_html += f"<li>{reason}</li>"
                 hidden_html += "</ul>"
-
-            info = f"<div style='color:white;'>{image_html}{details_html}{warning_html}{hidden_html}</div>"
+            
+            # Set the main div color using the theme text color
+            info = f"<div style='color:{text_color};'>{image_html}{details_html}{warning_html}{hidden_html}</div>"
             self.info_label.setText(info)
 
         except Exception as e:
@@ -315,12 +424,9 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "About",
             "🌌 Planet Explorer\nCreated by BCI Campus\nVersion 1.0\n2025")
 
-
 # -------- MAIN --------
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
-    #win.show()
-    win.showMaximized()
-
+    win.showMaximized()  # open maximized
     sys.exit(app.exec_())

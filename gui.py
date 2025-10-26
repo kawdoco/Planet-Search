@@ -1,18 +1,18 @@
-import sys                      
+import sys                                     
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QDateTimeEdit, QMessageBox,
     QFrame, QAction
 )
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QDateTime, Qt
+from PyQt5.QtCore import QDateTime, Qt, QPropertyAnimation
+from PyQt5.QtWidgets import QGraphicsOpacityEffect
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from datetime import datetime, timezone
 import numpy as np
 from pathlib import Path
 from solarsystem import PlanetEngine
-
 
 # ---------------- SKY MAP CANVAS ----------------
 class SkyCanvas(FigureCanvas):
@@ -38,7 +38,6 @@ class SkyCanvas(FigureCanvas):
         self.ax.set_title("Sky view (azimuth=N=0°, radius = 90°-altitude)")
         self.draw()
 
-
 # ---------------- MAIN WINDOW ----------------
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -47,34 +46,89 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1000, 600)
 
         self.engine = PlanetEngine()
+        self.dark_mode = True  # default
 
         self.init_menu()
-        self.show_home_page()  # start with home page
+        self.show_home_page()
+        self.apply_theme(initial=True)
 
     # -------- MENU BAR --------
     def init_menu(self):
         menubar = self.menuBar()
-        menubar.setStyleSheet("""
-            QMenuBar { background-color: #01161e; color: white; font-weight: bold; }
-            QMenuBar::item { background-color: transparent; padding: 4px 10px; }
-            QMenuBar::item:selected { background-color: #124559; }
-            QMenu { background-color: #01161e; color: white; border: 1px solid #124559; }
-            QMenu::item:selected { background-color: #124559; }
-        """)
+        menubar.setStyleSheet("QMenuBar { font-weight: bold; }")
 
+        # File menu
         file_menu = menubar.addMenu("File")
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
+        # Home menu
+        home_menu = menubar.addMenu("Home")
+        home_action = QAction("Go Home", self)
+        home_action.triggered.connect(self.show_home_page)
+        home_menu.addAction(home_action)
+
+        # Help menu
         help_menu = menubar.addMenu("Help")
         help_action = QAction("How to Use", self)
         help_action.triggered.connect(self.show_help_dialog)
         help_menu.addAction(help_action)
-
         about_action = QAction("About", self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
+
+        # -------- Mode menu with both options --------
+        mode_menu = menubar.addMenu("Mode")
+        self.dark_mode_action = QAction("Dark Mode", self, checkable=True)
+        self.light_mode_action = QAction("Light Mode", self, checkable=True)
+
+        # Set initial state
+        self.dark_mode_action.setChecked(True)
+        self.light_mode_action.setChecked(False)
+
+        # Connect actions
+        self.dark_mode_action.triggered.connect(lambda: self.set_mode(True))
+        self.light_mode_action.triggered.connect(lambda: self.set_mode(False))
+
+        mode_menu.addAction(self.dark_mode_action)
+        mode_menu.addAction(self.light_mode_action)
+
+    # -------- Mode switching function --------
+    def set_mode(self, dark: bool):
+        self.dark_mode = dark
+        self.apply_theme()
+        self.dark_mode_action.setChecked(dark)
+        self.light_mode_action.setChecked(not dark)
+
+
+    # -------- THEME APPLY --------
+    def apply_theme(self, initial=False):
+        if self.dark_mode:
+            bg_color = "#01161e"
+            text_color = "white"
+            btn_bg = "#2979FF"
+            btn_hover = "#1E88E5"
+        else:
+            bg_color = "#f5f5f5"
+            text_color = "#222222"
+            btn_bg = "#1E88E5"
+            btn_hover = "#2979FF"
+
+        self.setStyleSheet(f"""
+            QWidget {{ background-color: {bg_color}; color: {text_color}; }}
+            QPushButton {{
+                background-color: {btn_bg};
+                color: white;
+                #border-radius: 8px;
+                padding: 6px 15px;
+            }}
+            QPushButton:hover {{ background-color: {btn_hover}; }}
+            QComboBox {{ background-color: white; color: black; padding: 2px 5px; border-radius:4px; }}
+            QLabel {{ color: {text_color}; }}
+            QDateTimeEdit {{ background-color: white; color: black; padding: 2px 5px; border-radius:4px; }}
+            QFrame {{ background-color: {bg_color}; color: {text_color}; border: 1px solid #124559; border-radius:6px; }}
+        """)
 
     # -------- HOME PAGE --------
     def show_home_page(self):
@@ -83,22 +137,19 @@ class MainWindow(QMainWindow):
         layout.setAlignment(Qt.AlignCenter)
 
         title = QLabel("Welcome to Planet Explorer!")
-        title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        title.setStyleSheet("font-size: 28px; font-weight: bold;")
 
         subtitle = QLabel("Track planets, explore the sky, and see their details.")
-        subtitle.setStyleSheet("color: #CCCCCC; font-size: 16px; margin-bottom: 30px;")
+        subtitle.setStyleSheet("font-size: 16px; margin-bottom: 30px;")
 
         search_btn = QPushButton("🔭  Search Planet")
         search_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2979FF;
-                color: white;
                 font-size: 18px;
                 font-weight: bold;
                 padding: 12px 30px;
                 border-radius: 10px;
             }
-            QPushButton:hover { background-color: #1E88E5; }
         """)
         search_btn.clicked.connect(self.show_planet_page)
 
@@ -107,33 +158,16 @@ class MainWindow(QMainWindow):
         layout.addWidget(search_btn)
 
         home_widget.setLayout(layout)
-        home_widget.setStyleSheet("background-color: #000814;")
-
         self.setCentralWidget(home_widget)
+        self.apply_theme()
 
     # -------- PLANET PAGE --------
     def show_planet_page(self):
         central_widget = QWidget()
         main_layout = QVBoxLayout()
 
-        # Home icon
-        home_btn = QPushButton("🏠 Home")
-        home_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #124559;
-                color: white;
-                border-radius: 8px;
-                padding: 6px 15px;
-            }
-            QPushButton:hover { background-color: #1A6C7A; }
-        """)
-        home_btn.clicked.connect(self.show_home_page)
-
-        main_layout.addWidget(home_btn, alignment=Qt.AlignLeft)
-
-        # --- Controls layout ---
+        # --- Controls ---
         controls = QHBoxLayout()
-
         controls.addWidget(QLabel("Select City:"))
         self.city_cb = QComboBox()
         self.cities = {
@@ -147,16 +181,9 @@ class MainWindow(QMainWindow):
             "Kolkata": (22.5667, 88.3667),
             "Chennai": (13.0833, 80.2833),
             "London": (51.5000, -0.1000),
-            "Birmingham": (52.4000, -1.9000),
-            "Leeds": (53.8000, -1.5000),
-            "Liverpool": (53.4000, -3.0000),
-            "Bristol": (51.5000, -2.6000),
-            "Manchester": (53.5000, -2.3000),
         }
-
         for city in self.cities:
             self.city_cb.addItem(city)
-
         default_city = "Colombo"
         self.city_cb.setCurrentText(default_city)
         self.lat, self.lon = self.cities[default_city]
@@ -190,20 +217,13 @@ class MainWindow(QMainWindow):
         self.info_label.setWordWrap(True)
         self.info_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.info_label.setMinimumWidth(300)
-        self.info_label.setStyleSheet("""
-            background-color: #01161e;
-            color: white;
-            border: 1px solid #124559;
-            border-radius: 6px;
-            padding: 10px;
-        """)
         self.info_label.setAlignment(Qt.AlignTop)
         main_content.addWidget(self.info_label, stretch=1)
 
         main_layout.addLayout(main_content)
-
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
+        self.apply_theme()
 
     # -------- OTHER FUNCTIONS --------
     def update_coordinates(self, city_name):
@@ -285,6 +305,5 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
-    win.show()
+    win.showMaximized()
     sys.exit(app.exec_())
-

@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
         layout.setAlignment(Qt.AlignCenter)
 
         self.bg_label = QLabel(home_widget)
-        pixmap = QPixmap("images/home1.png")
+        pixmap = QPixmap("images/home6.jpg")
         self.bg_label.setPixmap(pixmap)
         self.bg_label.setScaledContents(True)
         self.bg_label.setGeometry(0, 0, self.width(), self.height())

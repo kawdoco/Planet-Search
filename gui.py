@@ -1,12 +1,10 @@
-import sys                                     
+import sys                              
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QDateTimeEdit, QMessageBox,
     QFrame, QAction
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QDateTime, Qt, QPropertyAnimation
-from PyQt5.QtWidgets import QGraphicsOpacityEffect
+from PyQt5.QtCore import QDateTime, Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from datetime import datetime, timezone
@@ -52,7 +50,7 @@ class MainWindow(QMainWindow):
         self.show_home_page()
         self.apply_theme(initial=True)
 
-    # -------- MENU BAR --------
+    # -------- MENU BAR WITH RELIABLE MODE TOGGLE --------
     def init_menu(self):
         menubar = self.menuBar()
         menubar.setStyleSheet("QMenuBar { font-weight: bold; }")
@@ -101,7 +99,6 @@ class MainWindow(QMainWindow):
         self.dark_mode_action.setChecked(dark)
         self.light_mode_action.setChecked(not dark)
 
-
     # -------- THEME APPLY --------
     def apply_theme(self, initial=False):
         if self.dark_mode:
@@ -120,7 +117,7 @@ class MainWindow(QMainWindow):
             QPushButton {{
                 background-color: {btn_bg};
                 color: white;
-                #border-radius: 8px;
+                border-radius: 8px;
                 padding: 6px 15px;
             }}
             QPushButton:hover {{ background-color: {btn_hover}; }}
@@ -133,14 +130,17 @@ class MainWindow(QMainWindow):
     # -------- HOME PAGE --------
     def show_home_page(self):
         home_widget = QWidget()
+        home_widget.setObjectName("home_widget")  # for stylesheet targeting
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
 
         title = QLabel("Welcome to Planet Explorer!")
         title.setStyleSheet("font-size: 28px; font-weight: bold;")
+        title.setAlignment(Qt.AlignCenter)
 
         subtitle = QLabel("Track planets, explore the sky, and see their details.")
         subtitle.setStyleSheet("font-size: 16px; margin-bottom: 30px;")
+        subtitle.setAlignment(Qt.AlignCenter)
 
         search_btn = QPushButton("🔭  Search Planet")
         search_btn.setStyleSheet("""
@@ -158,8 +158,23 @@ class MainWindow(QMainWindow):
         layout.addWidget(search_btn)
 
         home_widget.setLayout(layout)
+
+        # ---- Apply background image ----
+        image_path = "images/home.jpg"  
+        home_widget.setStyleSheet(f"""
+            QWidget#home_widget {{
+                background-image: url({image_path});
+                background-repeat: no-repeat;
+                background-position: center;
+                background-attachment: fixed;
+                background-size: cover;
+            }}
+        """)
+
+
+
         self.setCentralWidget(home_widget)
-        self.apply_theme()
+        #self.apply_theme()
 
     # -------- PLANET PAGE --------
     def show_planet_page(self):
@@ -305,5 +320,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
+    #win.show()
     win.showMaximized()
+
     sys.exit(app.exec_())

@@ -223,6 +223,15 @@ class MainWindow(QMainWindow):
             "Galle": (6.0360, 79.9179),
             "Jaffna": (9.6606, 80.0140),
             "Delhi": (28.6333, 77.2167),
+            "Mumbai": (19.0833, 72.8667),
+            "Kolkata": (22.5667, 88.3667),
+            "Chennai": (13.0833, 80.2833),
+            "London": (51.5000, -0.1000),
+            "Birmingham": (52.4000, -1.9000),
+            "Leeds": (53.8000, -1.5000),
+            "Liverpool": (53.4000, -3.0000),
+            "Bristol": (51.5000, -2.6000),
+            "Manchester": (53.5000, -2.3000),
         }
         for city in self.cities:
             self.city_cb.addItem(city)

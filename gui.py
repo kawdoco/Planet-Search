@@ -288,6 +288,9 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
         self.apply_theme()
+        # engine
+        
+        self.engine = PlanetEngine()
 
     # -------- OTHER FUNCTIONS --------
     def update_coordinates(self, city_name):
@@ -305,11 +308,16 @@ class MainWindow(QMainWindow):
             sel_body = self.body_cb.currentText()
             bodies = ["Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
             data, hidden_reasons = [], []
+            
+            bodies = ["Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune"]
+            data = []
+            hidden_reasons = []  # store below-horizon messages
 
             for b in bodies:
                 pos = self.engine.body_position(b, observer_latlon=(lat, lon), when=dt)
                 pos['name'] = b
                 if pos['alt_deg'] > 0:
+                if pos['alt_deg'] > 0:  # above horizon
                     data.append(pos)
                 else:
                     hidden_reasons.append(f"{b} is below the horizon at this time.")
@@ -344,6 +352,30 @@ class MainWindow(QMainWindow):
 
             info = f"<div style='color:{text_color};'>{image_html}{details_html}{hidden_html}</div>"
             self.info_label.setText(info)
+            # Plot only above-horizon bodies
+            self.canvas.plot_bodies(data)
+
+            # show a popup with the chosen body's details
+            #chosen = next(item for item in data if item['name']==sel_body)
+            chosen = self.engine.body_position(sel_body, observer_latlon=(lat,lon), when=dt)
+            info = (f"{sel_body} @ {dt.isoformat()} UTC\n"
+                    f"Azimuth: {chosen['az_deg']:.2f}°\n"
+                    f"Altitude: {chosen['alt_deg']:.2f}°\n"
+                    f"RA: {chosen['ra_hours']:.4f} h\n"
+                    f"Dec: {chosen['dec_deg']:.4f}°\n"
+                    f"Distance (AU): {chosen['distance_au']:.4f}")
+            
+             # If selected body is below horizon, add reason to popup
+            if chosen['alt_deg'] <= 0:
+                info += "\n\n⚠️ Not visible on sky map because it is below the horizon."
+
+            QMessageBox.information(self, f"{sel_body} position", info)
+
+            # Show messages for all hidden bodies (optional, debug style)
+            if hidden_reasons:
+                QMessageBox.information(self, "Not Visible", "\n".join(hidden_reasons))
+            
+            #QMessageBox.information(self, f"{sel_body} position", info)
 
         except Exception as e:
             self.info_label.setText(f"<span style='color:red'>Error: {str(e)}</span>")
@@ -360,5 +392,5 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
-    win.showMaximized()
+    win.show()
     sys.exit(app.exec_())

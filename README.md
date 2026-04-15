@@ -56,7 +56,6 @@ Access Help or About from the menu bar for instructions or project information.
 # 📂 Project Structure
 
 sky-map-viewer/
-  │
   ├─ gui.py               # Main application GUI code
   ├─ solarsystem.py       # PlanetEngine for calculating planetary positions
   ├─ images/              # Planet images (Mercury.png, Venus.png, etc.)
@@ -70,9 +69,3 @@ sky-map-viewer/
   - Dilmi Amasha
   - Sanjana De Silva
   - Navodya Sankalpani
-
-
-
-
-
-
